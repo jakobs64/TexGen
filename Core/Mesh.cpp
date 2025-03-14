@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "TexGen.h"
 
 using namespace TexGen;
+
+auto LessPairDoubleXYZ = [](std::pair<double, XYZ> x, std::pair<double, XYZ> y) { return x.first < y.first; };
+
 extern "C"
 {
 #include "../Triangle/triangle.h"
@@ -1732,7 +1735,8 @@ int CMesh::IntersectLine(const XYZ &P1, const XYZ &P2, vector<pair<double, XYZ> 
 		IntersectionPoints.push_back(pair<double, XYZ>(dBestU, BestNormal));
 	}
 
-	sort(IntersectionPoints.begin(), IntersectionPoints.end(), LessPairDoubleXYZ());
+	//sort(IntersectionPoints.begin(), IntersectionPoints.end(), LessPairDoubleXYZ());
+	sort(IntersectionPoints.begin(), IntersectionPoints.end(), LessPairDoubleXYZ);
 
 	return IntersectionPoints.size();
 }

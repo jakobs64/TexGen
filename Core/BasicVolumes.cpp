@@ -28,6 +28,9 @@ extern "C"
 }
 
 using namespace TexGen;
+
+auto LessPairDoubleInt = [](std::pair<double, int> x, std::pair<double, int> y) { return x.first < y.first; };
+
 CBasicVolumes::CBasicVolumes(void)
 : m_dTolerance(1e-6)
 , m_pTextile(NULL)
@@ -841,7 +844,7 @@ void CBasicVolumes::CalculateYarnIndices()
 				YarnHeightIndex.push_back(make_pair((dMinZ+dMaxZ)/2, j));
 			}
 		}
-		sort(YarnHeightIndex.begin(), YarnHeightIndex.end(), LessPairDoubleInt());
+		sort(YarnHeightIndex.begin(), YarnHeightIndex.end(), LessPairDoubleInt);
 		for (j=0; j<(int)YarnHeightIndex.size(); ++j)
 		{
 			m_ProjectedRegions[i].YarnIndices.push_back(YarnHeightIndex[j].second);

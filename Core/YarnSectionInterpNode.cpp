@@ -23,6 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //#include "TexGen.h"
 using namespace TexGen;
 
+/// Used to sort double-objectref pairs
+const auto LessPairDoubleObjectRef = [](std::pair<double, CObjectContainer<CSection> > x, std::pair<double, CObjectContainer<CSection> > y) { return x.first < y.first; };
+
+
 CYarnSectionInterpNode::CYarnSectionInterpNode(bool bRamped, bool bPolar, bool bConstMesh)
 : CYarnSectionInterp(bRamped, bPolar, bConstMesh)
 {
@@ -155,7 +159,8 @@ void CYarnSectionInterpNode::InsertSection(int iIndex, double u, const CSection 
 		return;
 	}
 	m_MidNodeSections[iIndex].push_back(pair<double, CObjectContainer<CSection> >(u, Section));
-	sort(m_MidNodeSections[iIndex].begin(), m_MidNodeSections[iIndex].end(), LessPairDoubleObjectRef<CSection>());
+	//sort(m_MidNodeSections[iIndex].begin(), m_MidNodeSections[iIndex].end(), LessPairDoubleObjectRef<CSection>());
+	sort(m_MidNodeSections[iIndex].begin(), m_MidNodeSections[iIndex].end(), LessPairDoubleObjectRef);
 }
 
 void CYarnSectionInterpNode::ReplaceSection(int iIndex, const CSection &Section)

@@ -30,6 +30,7 @@ using namespace TexGen;
 
 CAdjustMeshInterference::CAdjustMeshInterference(void)
 {
+	m_Tolerance = 0.0;
 }
 
 CAdjustMeshInterference::~CAdjustMeshInterference(void)

@@ -6,12 +6,17 @@ BuildWidgets3/
 BuildVS2015/
 BuildVS2017
 BuildPython3/
+BuildTest/
+BuildWidgets/
+
 Installer/OpenCascade64bit/
 Installer/OpenCascade64bit_7/
 Installer/Python_64bit/
 Installer/Python27Lib/
 Installer/Python39/
 Installer/Python39Lib/
+Installer/Python312/
+Installer/Python312Lib/
 Installer/*.exe
 !Installer/CFXImportVTK.exe
 Installer/*.dll

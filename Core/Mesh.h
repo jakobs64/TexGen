@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 namespace TexGen
 {
 	using namespace std;
-
+	
 	/// Defines the nodes and elements of a surface or volume mesh
 	/**
 	CMesh is a data structure that represents a mesh whith some additional functions to

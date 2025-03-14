@@ -20,7 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "PrecompiledHeaders.h"
 #include "YarnSectionInterpPosition.h"
 //#include "Section.h"
+
+/// Used to sort double-objectref pairs
+
+
 using namespace TexGen;
+
+const auto LessPairDoubleObjectRef = [](std::pair<double, CObjectContainer<CSection> > x, std::pair<double, CObjectContainer<CSection> > y) { return x.first < y.first; };
 
 CYarnSectionInterpPosition::CYarnSectionInterpPosition(bool bRamped, bool bPolar, bool bConstMesh)
 : CYarnSectionInterp(bRamped, bPolar, bConstMesh)
@@ -174,7 +180,7 @@ CMesh CYarnSectionInterpPosition::GetSectionMesh(const YARN_POSITION_INFORMATION
 void CYarnSectionInterpPosition::AddSection(double dPosition, const CSection &Section)
 {
 	m_Sections.push_back(pair<double, CObjectContainer<CSection> >(dPosition, Section));
-	sort(m_Sections.begin(), m_Sections.end(), LessPairDoubleObjectRef<CSection>());
+	sort(m_Sections.begin(), m_Sections.end(), LessPairDoubleObjectRef);
 }
 
 const CSection &CYarnSectionInterpPosition::GetSection(int iIndex) const
