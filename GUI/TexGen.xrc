@@ -957,7 +957,7 @@
 			<orient>wxVERTICAL</orient>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<object class="wxRadioBox" name="YarnSurface">
 					<style>wxRA_SPECIFY_COLS</style>
@@ -973,7 +973,7 @@
 			</object>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL</flag>
 				<border>5</border>
 				<object class="wxCheckBox" name="ExportDomain">
 					<tooltip>Export the domain. Note that the yarns will always be confined to the domain if one exists.</tooltip>
@@ -983,7 +983,7 @@
 			</object>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL</flag>
 				<border>5</border>
 				<object class="wxCheckBox" name="SubtractYarns">
 					<tooltip>Subtract yarn volumes from the exported domain to create holes in the domain volume.\nNote that this can be very slow or even fail completely.\nThis operation may be completed in 3rd party software if necessary.</tooltip>
@@ -1003,7 +1003,7 @@
 			</object>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
 				<object class="wxBoxSizer">
 					<orient>wxHORIZONTAL</orient>

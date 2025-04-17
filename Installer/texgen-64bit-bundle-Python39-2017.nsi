@@ -91,25 +91,25 @@ Section "TexGen (required)" ;No components page, name is not important
   File _Renderer.pyd
   File _Export.pyd
   File TexGenCore.dll
-  File OpenCascade64bit\TKBO.DLL
-  File OpenCascade64bit\TKBOOL.DLL
-  File OpenCascade64bit\TKBREP.DLL
-  File OpenCascade64bit\TKERNEL.DLL
-  File OpenCascade64bit\TKG2D.DLL
-  File OpenCascade64bit\TKG3D.DLL
-  File OpenCascade64bit\TKGEOMALGO.DLL
-  File OpenCascade64bit\TKGEOMBASE.DLL
-  File OpenCascade64bit\TKIGES.DLL
-  File OpenCascade64bit\TKMATH.DLL
-  File OpenCascade64bit\TKOFFSET.DLL
-  File OpenCascade64bit\TKPRIM.DLL
-  File OpenCascade64bit\TKSHHEALING.DLL
-  File OpenCascade64bit\TKSTEP.DLL
-  File OpenCascade64bit\TKSTEP209.DLL
-  File OpenCascade64bit\TKSTEPATTR.DLL
-  File OpenCascade64bit\TKSTEPBASE.DLL
-  File OpenCascade64bit\TKTOPALGO.DLL
-  File OpenCascade64bit\TKXSBASE.DLL
+  File OpenCascade7.7.0\TKBO.DLL
+  File OpenCascade7.7.0\TKBOOL.DLL
+  File OpenCascade7.7.0\TKBREP.DLL
+  File OpenCascade7.7.0\TKERNEL.DLL
+  File OpenCascade7.7.0\TKG2D.DLL
+  File OpenCascade7.7.0\TKG3D.DLL
+  File OpenCascade7.7.0\TKGEOMALGO.DLL
+  File OpenCascade7.7.0\TKGEOMBASE.DLL
+  File OpenCascade7.7.0\TKIGES.DLL
+  File OpenCascade7.7.0\TKMATH.DLL
+  File OpenCascade7.7.0\TKOFFSET.DLL
+  File OpenCascade7.7.0\TKPRIM.DLL
+  File OpenCascade7.7.0\TKSHHEALING.DLL
+  File OpenCascade7.7.0\TKSTEP.DLL
+  File OpenCascade7.7.0\TKSTEP209.DLL
+  File OpenCascade7.7.0\TKSTEPATTR.DLL
+  File OpenCascade7.7.0\TKSTEPBASE.DLL
+  File OpenCascade7.7.0\TKTOPALGO.DLL
+  File OpenCascade7.7.0\TKXSBASE.DLL
  ; File msvcp71.dll
  ; File msvcr71.dll
 

@@ -233,7 +233,8 @@ void CExporter::ConvertYarn(TopTools_HSequenceOfShape &Shapes, CYarn &Yarn, cons
 		for ( int i = 2; i <= YarnShapes.Length(); )
 		{
 			BRepAlgoAPI_Fuse Fused( Shapes.Value(1), YarnShapes.Value(i) );
-			if ( !Fused.ErrorStatus() )  // Error status = 0 if ok
+			if ( !Fused.HasErrors() )  // Error status = 0 if ok
+			//if (!Fused.ErrorStatus())  // Error status = 0 if ok
 			{
 				Shapes.SetValue( 1, Fused.Shape() );
 				YarnShapes.Remove(i);
