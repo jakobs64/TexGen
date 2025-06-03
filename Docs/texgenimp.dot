@@ -15,6 +15,7 @@ digraph G
 	CTextile->CTextileWeave;
 	CTextile->CTextile3DWeave;
 	CTextile->CTextileLayered;
+	CTextile->CTextileKnit;
 	CTextileWeave->CTextileWeave2D;
 	CTextileWeave->CTextileWeave3D;
 	CTextileWeave2D->CShearedTextileWeave2D;
@@ -22,7 +23,8 @@ digraph G
 	CTextile3DWeave->CTextileAngleInterlock;
 	CTextile3DWeave->CTextileOffsetAngleInterlock;
 	CTextile3DWeave->CTextileLayerToLayer;
-	CTextileLayerToLayer->CTextileDecoupledLToL
+	CTextileLayerToLayer->CTextileDecoupledLToL;
+	CTextileKnit->CTextileWeftKnit;
 
 	CYarnSection->CYarnSectionConstant;
 	CYarnSection->CYarnSectionInterp;
@@ -87,6 +89,8 @@ digraph G
 	CTextileLayerToLayer [style=filled, fillcolor="peachpuff"]
 	CTextileLayered [style=filled, fillcolor="peachpuff"]
 	CTextileDecoupledLToL [style=filled, fillcolor="peachpuff"]
+	CTextileKnit [style=filled, fillcolor="peachpuff"]
+	CTextileWeftKnit [style=filled, fillcolor="peachpuff"]
 	
 	CYarnSection [style=filled, fillcolor="lightblue"]
 	CYarnSectionConstant [style=filled, fillcolor="lightblue"]

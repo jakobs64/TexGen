@@ -1,20 +1,28 @@
 Version History
 ---------------
-v3.13.2
+v3.14.0
 =======
+
+General
+=======
+** Added installer files for Python312 build
 
 Core
 ====
 ** Changed CYarn::GetFibreVolumePerUnitArea so works with fibre diameter and number of fibres
 ** Changed CTextile::SetResolution function to take both number of section points and (optional) number of slave nodes
+** Updated to OpenCASCADE7.7.0
+** Added CTextileWeftKnit
 
 GUI
 ===
 ** Updated to wxWidgets 3.2.5
+** Added Weft Knit Wizard
 
 Python
 ======
 ** Updated WeavePattern.py to use tow width/height in conjunction with area
+** Updated to Python3.12
 
 v3.13.1
 =======
