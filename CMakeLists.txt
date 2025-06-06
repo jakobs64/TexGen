@@ -1,5 +1,14 @@
 PROJECT(TexGen)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+
+if (CMAKE_VERSION VERSION_LESS "3.1")
+  # Older CMake: append -std=c++11 manually
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+  # CMake ≥ 3.1: use the target‐independent STANDARD flags
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 #This will prevent a bunch of warnings when compiling under MSVC8, the second define stops
 #swig from redefining the same macro causing additional warnings
@@ -43,7 +52,7 @@ IF(BUILD_GUI)
 	ENDIF(NOT BUILD_PYTHON_INTERFACE)
 ENDIF(BUILD_GUI)
 
-SUBDIRS(Core Triangle Octree tinyxml CSparse tetgenlib LatinHypercube)
+SUBDIRS(Core Triangle tinyxml CSparse tetgenlib LatinHypercube)
 
 IF(BUILD_RENDERER)
 	SUBDIRS(Renderer)

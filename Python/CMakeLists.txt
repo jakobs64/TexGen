@@ -1,201 +1,265 @@
-IF(BUILD_PYTHON_INTERFACE)
-	INCLUDE(FindPythonSitePackages.cmake)
-	
-	# Find out the dependencies for the python core module interface
-	FILE(GLOB CORE_HEADER_FILES ../Core/*.h)
+# ---------------------------------------------------------------------------
+#  TexGen – Python/CMakeLists.txt
+# ---------------------------------------------------------------------------
 
-	# Find where SWIG and Python libraries are installed
-	FIND_PACKAGE(SWIG REQUIRED)
-	FIND_PACKAGE(PythonLibs REQUIRED)
+if (BUILD_PYTHON_INTERFACE)
 
-	# Set where to find the python header files
-	INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-	INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../OctreeRefinement/include)
+    include(FindPythonSitePackages.cmake)
 
-	# Add the swig command to the build
-	ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/Core_wrap.cxx"
-#	COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${REAL_OUTPUT_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/Core.i"
-	COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Core.i"
-	MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Core.i"
-	DEPENDS ${CORE_HEADER_FILES}
-	COMMENT "Generating SWIG wrapper code...")
+    # -----------------------------------------------------------------------
+    # 1.  Collect headers that SWIG depends on
+    # -----------------------------------------------------------------------
+    file(GLOB CORE_HEADER_FILES
+         ../Core/*.h)
 
-	if(COMMAND cmake_policy)
-			cmake_policy(SET CMP0003 NEW)
-		endif(COMMAND cmake_policy)
+    # -----------------------------------------------------------------------
+    # 2.  Locate SWIG and the chosen Python
+    # -----------------------------------------------------------------------
+    find_package(SWIG REQUIRED)
+    find_package(PythonLibs REQUIRED)
 
-	# Create the python core interface library
-	ADD_LIBRARY(_Core MODULE Core.i Core_wrap.cxx)
+    include_directories(
+        ${PYTHON_INCLUDE_PATH}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../OctreeRefinement/include
+    )
 
-	SET_SOURCE_FILES_PROPERTIES(Core_wrap.cxx PROPERTIES GENERATED 1)
+    # -----------------------------------------------------------------------
+    # 3.  Generate the SWIG wrapper
+    # -----------------------------------------------------------------------
+    add_custom_command(
+        OUTPUT  "${CMAKE_CURRENT_SOURCE_DIR}/Core_wrap.cxx"
+        COMMAND "${SWIG_EXECUTABLE}" -c++ -python
+                -outdir "${CMAKE_CURRENT_SOURCE_DIR}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/Core.i"
+        MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Core.i"
+        DEPENDS ${CORE_HEADER_FILES}
+        COMMENT "Generating SWIG wrapper code..."
+    )
 
-	# Make sure the output library has the correct name (e.g. _Core_d.pyd for windows debug, _Core.so for linux release)
-	SET_TARGET_PROPERTIES(_Core PROPERTIES PREFIX "" DEBUG_POSTFIX "_d")
-	IF(WIN32)
-		SET_TARGET_PROPERTIES(_Core PROPERTIES SUFFIX ".pyd")	
-	ENDIF(WIN32)
+    # CMP0003: link interface libraries via plain targets
+    if (COMMAND cmake_policy)
+        cmake_policy(SET CMP0003 NEW)
+    endif ()
 
-	IF(UNIX)
-		SET_TARGET_PROPERTIES(_Core PROPERTIES INSTALL_RPATH_USE_LINK_PATH 1
-			BUILD_WITH_INSTALL_RPATH 1
-			INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-#			LINK_FLAGS "-Xlinker")
-	ENDIF(UNIX)
+    # -----------------------------------------------------------------------
+    # 4.  Build the Python module _Core
+    # -----------------------------------------------------------------------
+    add_library(_Core MODULE Core.i Core_wrap.cxx)
+    set_source_files_properties(Core_wrap.cxx PROPERTIES GENERATED 1)
 
-	# Link to TexGenCore and Python
-	TARGET_LINK_LIBRARIES(_Core
-	TexGenCore
-	optimized ${PYTHON_LIBRARIES})
+    # Force-load the static archive on macOS so every symbol is present
+    #if (APPLE)
+     #   set(TEXGEN_CORE_ARCHIVE "${CMAKE_BINARY_DIR}/libTexGenCore.a")
+      #  target_link_options(_Core PRIVATE
+      #      "LINKER:-force_load,${TEXGEN_CORE_ARCHIVE}"
+      #  )
+    #endif ()
 
-	# If building the debug version link to the python debug library
-	IF(PYTHON_DEBUG_LIBRARIES)
-		TARGET_LINK_LIBRARIES(_Core debug ${PYTHON_DEBUG_LIBRARIES})
-	ENDIF(PYTHON_DEBUG_LIBRARIES)
-	
-	SET(PYTHON_MODULES "'Abaqus', 'Ansys', 'Completer', 'FlowTex', 'GridFile', 'WiseTex'")
-	IF(BUILD_RENDERER)
-		SET(PYTHON_MODULES "${PYTHON_MODULES}, 'Renderer'")
-	ENDIF(BUILD_RENDERER)
-	IF(BUILD_CASCADE_EXPORT)
-		SET(PYTHON_MODULES "${PYTHON_MODULES}, 'Export'")
-	ENDIF(BUILD_CASCADE_EXPORT)
+    # Make sure we build TexGenCore first
+    add_dependencies(_Core TexGenCore)
 
-	FILE(WRITE "__init__.py" "# __all__ = [${PYTHON_MODULES}]")
+    set_target_properties(_Core PROPERTIES
+        PREFIX ""
+        DEBUG_POSTFIX "_d"
+    )
 
-	INSTALL(FILES __init__.py Core.py
-	DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+    if (WIN32)
+        set_target_properties(_Core PROPERTIES SUFFIX ".pyd")
+    endif ()
 
+    if (UNIX)
+        set_target_properties(_Core PROPERTIES
+            INSTALL_RPATH_USE_LINK_PATH 1
+            BUILD_WITH_INSTALL_RPATH   1
+            INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
+        )
+    endif ()
 
-	# Find the TexGen python modules
-	FILE(GLOB PYTHON_MODULE_FILES Lib/*.py)
+    target_link_libraries(_Core
+        PRIVATE
+            TexGenCore
+            ${VTK_LIBRARIES}
+        optimized ${PYTHON_LIBRARIES}
+    )
 
-	INSTALL(FILES ${PYTHON_MODULE_FILES}
-	DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+    if (PYTHON_DEBUG_LIBRARIES)
+        target_link_libraries(_Core debug ${PYTHON_DEBUG_LIBRARIES})
+    endif ()
 
-	# Find the sample python scripts
-	FILE(GLOB PYTHON_SAMPLE_SCRIPTS Scripts/*.py)
+    # -----------------------------------------------------------------------
+    # 5.  Package pure-Python helpers
+    # -----------------------------------------------------------------------
+    # Core package initialiser
+    set(PYTHON_MODULES
+        "'Abaqus', 'Ansys', 'Completer', 'FlowTex', 'GridFile', 'WiseTex'"
+    )
 
-	INSTALL(TARGETS _Core
-		LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+    if (BUILD_RENDERER)
+        set(PYTHON_MODULES "${PYTHON_MODULES}, 'Renderer'")
+    endif ()
 
-	IF(WIN32)
-		INSTALL(FILES ${PYTHON_SAMPLE_SCRIPTS}
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/Scripts)
-		INSTALL(TARGETS _Core
-		LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer)	
-	ELSE(WIN32)
-		INSTALL(FILES ${PYTHON_SAMPLE_SCRIPTS}
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/TexGen/Scripts)		
-	ENDIF(WIN32)
-	
-	# Build the renderer python module
-	IF(BUILD_RENDERER)
-		# Find out the dependencies for the python renderer module interface
-		FILE(GLOB RENDERER_HEADER_FILES ../Renderer/*.h)
+    if (BUILD_CASCADE_EXPORT)
+        set(PYTHON_MODULES "${PYTHON_MODULES}, 'Export'")
+    endif ()
 
-		FIND_PACKAGE(VTK 6.3 REQUIRED NO_MODULE)
+    file(WRITE "__init__.py" "# __all__ = [${PYTHON_MODULES}]")
 
-		INCLUDE_DIRECTORIES(${VTK_INCLUDE_DIRS})
+    install(
+        FILES __init__.py Core.py
+        DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+    )
 
-		ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/Renderer_wrap.cxx"
-#		COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${REAL_OUTPUT_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/Renderer.i"
-		COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Renderer.i"
-		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Renderer.i"
-		DEPENDS ${RENDERER_HEADER_FILES}
-		COMMENT "Generating SWIG wrapper code...")
+    file(GLOB PYTHON_MODULE_FILES Lib/*.py)
+    install(
+        FILES ${PYTHON_MODULE_FILES}
+        DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+    )
 
-		ADD_LIBRARY(_Renderer MODULE Renderer.i Renderer_wrap.cxx)
+    # Sample scripts
+    file(GLOB PYTHON_SAMPLE_SCRIPTS Scripts/*.py)
 
-		SET_SOURCE_FILES_PROPERTIES(Renderer_wrap.cxx PROPERTIES GENERATED 1)
+    install(
+        TARGETS _Core
+        LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+    )
 
-		SET_TARGET_PROPERTIES(_Renderer PROPERTIES PREFIX "" DEBUG_POSTFIX "_d")
-		IF(WIN32)
-			SET_TARGET_PROPERTIES(_Renderer PROPERTIES SUFFIX ".pyd")	
-		ENDIF(WIN32)
-		IF(UNIX)
-			SET_TARGET_PROPERTIES(_Renderer PROPERTIES COMPILE_FLAGS -Wno-deprecated)
-		ENDIF(UNIX)
+    if (WIN32)
+        install(
+            FILES ${PYTHON_SAMPLE_SCRIPTS}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/Scripts
+        )
+        install(
+            TARGETS _Core
+            LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer
+        )
+    else ()
+        install(
+            FILES ${PYTHON_SAMPLE_SCRIPTS}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/TexGen/Scripts
+        )
+    endif ()
 
-		IF(UNIX)
-			SET_TARGET_PROPERTIES(_Renderer PROPERTIES INSTALL_RPATH_USE_LINK_PATH 1
-				BUILD_WITH_INSTALL_RPATH 1
-				INSTALL_RPATH "${VTK_LIBRARY_DIRS};${CMAKE_INSTALL_PREFIX}/lib")
-	#			LINK_FLAGS "-Xlinker")
-			SET_TARGET_PROPERTIES(_Renderer PROPERTIES LINK_FLAGS "-Wl,-rpath,${VTK_DIR} -L${VTK_DIR}")
-		ENDIF(UNIX)
+    # -----------------------------------------------------------------------
+    # 6.  Optional modules (Renderer / Export)
+    # -----------------------------------------------------------------------
+    # ---------- Renderer ----------
+    if (BUILD_RENDERER)
 
-		TARGET_LINK_LIBRARIES(_Renderer
-		TexGenRenderer
-		${VTK_LIBRARIES}
-		optimized ${PYTHON_LIBRARIES})
-		IF(PYTHON_DEBUG_LIBRARIES)
-			TARGET_LINK_LIBRARIES(_Renderer debug ${PYTHON_DEBUG_LIBRARIES})
-		ENDIF(PYTHON_DEBUG_LIBRARIES)
+        file(GLOB RENDERER_HEADER_FILES ../Renderer/*.h)
+        find_package(VTK 6.3 REQUIRED NO_MODULE)
+        include_directories(${VTK_INCLUDE_DIRS})
 
-		INSTALL(TARGETS _Renderer
-		LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+        add_custom_command(
+            OUTPUT  "${CMAKE_CURRENT_SOURCE_DIR}/Renderer_wrap.cxx"
+            COMMAND "${SWIG_EXECUTABLE}" -c++ -python
+                    -outdir "${CMAKE_CURRENT_SOURCE_DIR}"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/Renderer.i"
+            MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Renderer.i"
+            DEPENDS ${RENDERER_HEADER_FILES}
+            COMMENT "Generating SWIG wrapper code (Renderer)…"
+        )
 
-		INSTALL(FILES Renderer.py
-		DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+        add_library(_Renderer MODULE Renderer.i Renderer_wrap.cxx)
+        set_source_files_properties(Renderer_wrap.cxx PROPERTIES GENERATED 1)
 
-		IF(WIN32)
-			INSTALL(TARGETS _Renderer
-			LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer)	
-		ENDIF(WIN32)
+        set_target_properties(_Renderer PROPERTIES
+            PREFIX ""
+            DEBUG_POSTFIX "_d"
+        )
+        if (WIN32)
+            set_target_properties(_Renderer PROPERTIES SUFFIX ".pyd")
+        endif ()
+        if (UNIX)
+            set_target_properties(_Renderer PROPERTIES
+                COMPILE_FLAGS "-Wno-deprecated"
+                INSTALL_RPATH_USE_LINK_PATH 1
+                BUILD_WITH_INSTALL_RPATH   1
+                INSTALL_RPATH "${VTK_LIBRARY_DIRS};${CMAKE_INSTALL_PREFIX}/lib"
+            )
+        endif ()
 
-	ENDIF(BUILD_RENDERER)
+        target_link_libraries(_Renderer
+            PRIVATE
+                TexGenRenderer
+                ${VTK_LIBRARIES}
+            optimized ${PYTHON_LIBRARIES}
+        )
+        if (PYTHON_DEBUG_LIBRARIES)
+            target_link_libraries(_Renderer debug ${PYTHON_DEBUG_LIBRARIES})
+        endif ()
 
+        install(
+            TARGETS _Renderer
+            LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+        )
+        install(
+            FILES Renderer.py
+            DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+        )
+        if (WIN32)
+            install(
+                TARGETS _Renderer
+                LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer
+            )
+        endif ()
+    endif ()
 
-	# Build the renderer python module
-	IF(BUILD_CASCADE_EXPORT)
-		SET(EXPORT_HEADER_FILES ../Export/Exporter.h)
+    # ---------- Exporter ----------
+    if (BUILD_CASCADE_EXPORT)
 
-		ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/Export_wrap.cxx"
-#		COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${REAL_OUTPUT_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/Export.i"
-		COMMAND "${SWIG_EXECUTABLE}" -c++ -python -outdir "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Export.i"
-		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Export.i"
-		DEPENDS ${EXPORT_HEADER_FILES}
-		COMMENT "Generating SWIG wrapper code...")
+        set(EXPORT_HEADER_FILES ../Export/Exporter.h)
 
-		ADD_LIBRARY(_Export MODULE Export.i Export_wrap.cxx)
-		
-		SET_SOURCE_FILES_PROPERTIES(Export_wrap.cxx PROPERTIES GENERATED 1)
+        add_custom_command(
+            OUTPUT  "${CMAKE_CURRENT_SOURCE_DIR}/Export_wrap.cxx"
+            COMMAND "${SWIG_EXECUTABLE}" -c++ -python
+                    -outdir "${CMAKE_CURRENT_SOURCE_DIR}"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/Export.i"
+            MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/Export.i"
+            DEPENDS ${EXPORT_HEADER_FILES}
+            COMMENT "Generating SWIG wrapper code (Export)…"
+        )
 
-		SET_TARGET_PROPERTIES(_Export PROPERTIES PREFIX "" DEBUG_POSTFIX "_d")
-		IF(WIN32)
-			SET_TARGET_PROPERTIES(_Export PROPERTIES SUFFIX ".pyd")	
-		ENDIF(WIN32)
-		IF(UNIX)
-			SET_TARGET_PROPERTIES(_Export PROPERTIES COMPILE_FLAGS -Wno-deprecated)
-		ENDIF(UNIX)
-		IF(UNIX)
-			SET_TARGET_PROPERTIES(_Export PROPERTIES INSTALL_RPATH_USE_LINK_PATH 1
-				BUILD_WITH_INSTALL_RPATH 1
-				INSTALL_RPATH "${OPENCASCADE_LIBRARY_DIR};${CMAKE_INSTALL_PREFIX}/lib")
-	#			LINK_FLAGS "-Xlinker")
-		ENDIF(UNIX)
-		TARGET_LINK_LIBRARIES(_Export
-		TexGenExport
-		optimized ${PYTHON_LIBRARIES})
-		IF(PYTHON_DEBUG_LIBRARIES)
-			TARGET_LINK_LIBRARIES(_Export debug ${PYTHON_DEBUG_LIBRARIES})
-		ENDIF(PYTHON_DEBUG_LIBRARIES)
+        add_library(_Export MODULE Export.i Export_wrap.cxx)
+        set_source_files_properties(Export_wrap.cxx PROPERTIES GENERATED 1)
 
-		INSTALL(TARGETS _Export
-		LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+        set_target_properties(_Export PROPERTIES
+            PREFIX ""
+            DEBUG_POSTFIX "_d"
+        )
+        if (WIN32)
+            set_target_properties(_Export PROPERTIES SUFFIX ".pyd")
+        endif ()
+        if (UNIX)
+            set_target_properties(_Export PROPERTIES
+                COMPILE_FLAGS "-Wno-deprecated"
+                INSTALL_RPATH_USE_LINK_PATH 1
+                BUILD_WITH_INSTALL_RPATH   1
+                INSTALL_RPATH "${OPENCASCADE_LIBRARY_DIR};${CMAKE_INSTALL_PREFIX}/lib"
+            )
+        endif ()
 
-		INSTALL(FILES Export.py
-		DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen)
+        target_link_libraries(_Export
+            PRIVATE TexGenExport
+            optimized ${PYTHON_LIBRARIES}
+        )
+        if (PYTHON_DEBUG_LIBRARIES)
+            target_link_libraries(_Export debug ${PYTHON_DEBUG_LIBRARIES})
+        endif ()
 
-		IF(WIN32)
-			INSTALL(TARGETS _Export
-			LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer)	
-		ENDIF(WIN32)
+        install(
+            TARGETS _Export
+            LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+        )
+        install(
+            FILES Export.py
+            DESTINATION ${PYTHON_SITEPACKAGES_DIR}/TexGen
+        )
+        if (WIN32)
+            install(
+                TARGETS _Export
+                LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Installer
+            )
+        endif ()
+    endif ()
 
-	ENDIF(BUILD_CASCADE_EXPORT)
-
-ENDIF(BUILD_PYTHON_INTERFACE)
-
-
-
-
+endif ()  # BUILD_PYTHON_INTERFACE

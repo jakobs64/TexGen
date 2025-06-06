@@ -28,6 +28,7 @@ namespace TexGen
 		class CLASS_DECLSPEC CMaterial
 		{
 		public:
+			virtual ~CMaterial() {} 
 			virtual CMaterial* Copy() const = 0;
 			virtual string GetAbaqusCommands(string Type = "" ) = 0;
 			virtual vector<double>& GetConstants() = 0;

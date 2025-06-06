@@ -19,17 +19,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 %module(directors="1") Core
 
+%ignore TexGen::COctreeVoxelMesh;
 %include <stl.i>
 %include <std_list.i>
 %include <std_vector.i>
 %include <std_string.i>
 %{
-	#include "../Core/PrecompiledHeaders.h"
-	#include "../Core/TexGen.h"
-	#pragma warning ( disable : 4224 4049 )
-	using namespace TexGen;
-	namespace TexGen
-	{
+#include "../Core/PrecompiledHeaders.h"
+#include "../Core/TexGen.h"
+#pragma warning ( disable : 4224 4049 )
+using namespace TexGen;
+namespace TexGen
+{
 		CTextile* GetTextile(string TextileName = "") { return TEXGEN.GetTextile(TextileName);}
 		bool AddTextile(string TextileName, const CTextile &Textile, bool bOverwrite = false) { return TEXGEN.AddTextile(TextileName, Textile, bOverwrite);}
 		string AddTextile(const CTextile &Textile) { return TEXGEN.AddTextile(Textile);}
@@ -38,7 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 		bool ReadFromXML(string FileName) { return TEXGEN.ReadFromXML(FileName);}
 		void DeleteTextiles() { return TEXGEN.DeleteTextiles();}
 		const map<string, CTextile*> &GetTextiles() { return TEXGEN.GetTextiles();}
-	}
+}
 %}
 
 // Generate a copy constructor wrapper for all classes
@@ -201,7 +202,6 @@ namespace std
 %include "../Core/ShearedPeriodicBoundaries.h"
 %include "../Core/StaggeredPeriodicBoundaries.h"
 %include "../Core/Materials.h"
-%include "../Core/OctreeVoxelMesh.h"
 %include "../Core/ShellElementExport.h"
 %include "../Core/SurfaceMesh.h"
 
